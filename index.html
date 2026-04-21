@@ -4,21 +4,191 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fitness Tracker App</title> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <nav class="navbar">
-        <div class="app-name">Fitness Tracker</div>
+        <div class="brand-block">
+            <div class="app-name">FitnessTracker</div>
+            <p class="app-tagline">Build strength one day at a time</p>
+        </div>
         <ul class="nav-links">
-            <li><a href="page-2.html">Page 2</a></li>
-            <li><a href="page-3.html">Page 3</a></li>
-            <li><a href="page-4.html">Page 4</a></li>
+            <li><a class="active" href="index.html" aria-current="page">Dashboard</a></li>
+            <li><a href="page-2.html">Meal Tracking</a></li>
+            <li><a href="page-3.html">Workout Tracker</a></li>
+            <li><a href="page-5.html">BMI / Weight Tracker</a></li>
+            <li><a href="page-4.html">Profile</a></li>
         </ul>
     </nav>
 
-    <h1>Welcome to the Fitness Tracker App</h1>
-    <p>Track your workouts, monitor your progress, and achieve your fitness goals!</p>
-    
+    <header class="board-header">
+        <h1>Fitness Dashboard</h1>
+        <p id="today-label">Today</p>
+    </header>
+
+    <div class="dashboard-scroll">
+    <main class="dashboard">
+        <section class="panel calendar-panel">
+            <div class="panel-header">
+                <h2>Your Month</h2>
+                <p>Plan training days at a glance.</p>
+            </div>
+            <div class="calendar-toolbar">
+                <button id="prev-month" class="small-btn" type="button">Prev</button>
+                <h2 id="calendar-title">Month Year</h2>
+                <button id="next-month" class="small-btn" type="button">Next</button>
+            </div>
+            <div class="calendar-shell">
+                <div class="calendar-grid weekdays-grid" id="weekdays-grid"></div>
+                <div class="calendar-grid days-grid" id="calendar-grid"></div>
+            </div>
+        </section>
+
+        <section class="panel actions-panel">
+            <div class="panel-header">
+                <h2>Tracking Tools</h2>
+                <p>Choose what you want to track right now.</p>
+            </div>
+
+            <div class="action-stack">
+                <button class="action-btn" type="button" data-action="Meal tracking opened" data-href="page-2.html">
+                    Meal Tracking
+                </button>
+                <button class="action-btn" type="button" data-action="Workout tracker opened" data-href="page-3.html">
+                    Workout Tracker
+                </button>
+                <button class="action-btn" type="button" data-action="BMI and weight tracker opened" data-href="page-5.html">
+                    BMI / Weight Tracker
+                </button>
+            </div>
+
+            <p class="status" id="status-msg">Pick a tracker to begin.</p>
+        </section>
+
+        <section class="panel plan-panel">
+            <div class="panel-header">
+                <h2>Today's Plan</h2>
+                <p>Add your day plan here.</p>
+            </div>
+            <div class="plan-empty-box" aria-label="Today's plan notes area">
+                <p>Empty plan box</p>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <script>
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const calendarTitle = document.getElementById("calendar-title");
+        const weekdaysGrid = document.getElementById("weekdays-grid");
+        const calendarGrid = document.getElementById("calendar-grid");
+        const prevMonthBtn = document.getElementById("prev-month");
+        const nextMonthBtn = document.getElementById("next-month");
+
+        const now = new Date();
+        const todayLabel = document.getElementById("today-label");
+        let currentMonth = now.getMonth();
+        let currentYear = now.getFullYear();
+
+        todayLabel.textContent = now.toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+
+        function renderWeekdays() {
+            weekdaysGrid.innerHTML = "";
+            dayNames.forEach((day) => {
+                const dayCell = document.createElement("div");
+                dayCell.className = "day-name";
+                dayCell.setAttribute("role", "columnheader");
+                dayCell.textContent = day;
+                weekdaysGrid.appendChild(dayCell);
+            });
+        }
+
+        function renderCalendar(month, year) {
+            calendarGrid.innerHTML = "";
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i += 1) {
+                const emptyCell = document.createElement("div");
+                emptyCell.className = "calendar-cell empty";
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= totalDays; day += 1) {
+                const cell = document.createElement("div");
+                cell.className = "calendar-cell";
+                cell.textContent = day;
+
+                if (
+                    day === now.getDate() &&
+                    month === now.getMonth() &&
+                    year === now.getFullYear()
+                ) {
+                    cell.classList.add("today");
+                }
+
+                calendarGrid.appendChild(cell);
+            }
+
+            const totalRenderedCells = firstDayIndex + totalDays;
+            const trailingEmptyCells = (7 - (totalRenderedCells % 7)) % 7;
+
+            for (let i = 0; i < trailingEmptyCells; i += 1) {
+                const emptyCell = document.createElement("div");
+                emptyCell.className = "calendar-cell empty";
+                emptyCell.setAttribute("aria-hidden", "true");
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            calendarTitle.textContent = `${monthNames[month]} ${year}`;
+        }
+
+        prevMonthBtn.addEventListener("click", () => {
+            currentMonth -= 1;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear -= 1;
+            }
+            renderCalendar(currentMonth, currentYear);
+        });
+
+        nextMonthBtn.addEventListener("click", () => {
+            currentMonth += 1;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear += 1;
+            }
+            renderCalendar(currentMonth, currentYear);
+        });
+
+        document.querySelectorAll(".action-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                const status = document.getElementById("status-msg");
+                status.textContent = `${button.dataset.action}.`;
+
+                if (button.dataset.href) {
+                    window.location.href = button.dataset.href;
+                }
+            });
+        });
+
+        renderWeekdays();
+        renderCalendar(currentMonth, currentYear);
+    </script>
 
 </body>
 </html>
