@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Fitness Tracker - Profile</title>
+	<title>Fitness Tracker - Weight Tracker</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,12 +19,175 @@
 			<li><a href="index.html">Dashboard</a></li>
 			<li><a href="page-2.html">Meal Tracking</a></li>
 			<li><a href="page-3.html">Workout Tracker</a></li>
-			<li><a href="page-5.html">BMI / Weight Tracker</a></li>
-			<li><a class="active" href="page-4.html" aria-current="page">Profile</a></li>
+			<li><a class="active" href="page-4.html" aria-current="page">Weight Tracker</a></li>
+			<li><a href="page-5.html">Profile</a></li>
 		</ul>
 	</nav>
 
-	<h1>Profile</h1>
-	<p>This is placeholder content for your profile page.</p>
+	<main class="bmi-page">
+		<header class="bmi-page-header">
+			<h1>Weight Tracker</h1>
+			<p>Track your body metrics, calculate BMI, and log your weight progress.</p>
+		</header>
+
+		<section class="bmi-grid" aria-label="BMI and weight tools">
+			<section class="bmi-card" aria-labelledby="bmi-calc-title">
+				<div class="bmi-card-head">
+					<h2 id="bmi-calc-title">BMI Calculator</h2>
+				</div>
+				<div class="bmi-form-grid">
+					<label for="unit-system">Unit System
+						<select id="unit-system">
+							<option value="metric">Metric (kg, cm)</option>
+							<option value="imperial">Imperial (lb, in)</option>
+						</select>
+					</label>
+					<label for="height-input">Height
+						<input id="height-input" type="number" min="1" step="0.1" placeholder="cm">
+					</label>
+					<label for="weight-input">Weight
+						<input id="weight-input" type="number" min="1" step="0.1" placeholder="kg">
+					</label>
+				</div>
+
+				<button id="calc-bmi-btn" class="bmi-action-btn" type="button">Calculate BMI</button>
+
+				<div class="bmi-result" id="bmi-result" aria-live="polite">
+					<p class="bmi-value">BMI: <span id="bmi-value">--</span></p>
+					<p class="bmi-category">Category: <span id="bmi-category">Not calculated</span></p>
+				</div>
+			</section>
+
+			<section class="bmi-card" aria-labelledby="weight-log-title">
+				<div class="bmi-card-head">
+					<h2 id="weight-log-title">Weight Log</h2>
+				</div>
+
+				<div class="weight-log-form">
+					<label for="log-date">Date
+						<input id="log-date" type="date">
+					</label>
+					<label for="log-weight">Weight
+						<input id="log-weight" type="number" min="1" step="0.1" placeholder="Enter weight">
+					</label>
+					<label for="log-note">Note
+						<input id="log-note" type="text" placeholder="Example: after workout">
+					</label>
+					<button id="add-weight-btn" class="bmi-action-btn" type="button">Add Entry</button>
+				</div>
+
+				<div class="weight-table-wrap">
+					<table class="weight-table">
+						<thead>
+							<tr>
+								<th>Date</th>
+								<th>Weight</th>
+								<th>Note</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody id="weight-log-body"></tbody>
+					</table>
+				</div>
+			</section>
+		</section>
+	</main>
+
+	<script>
+		const unitSystem = document.getElementById("unit-system");
+		const heightInput = document.getElementById("height-input");
+		const weightInput = document.getElementById("weight-input");
+		const calcBmiBtn = document.getElementById("calc-bmi-btn");
+		const bmiValueEl = document.getElementById("bmi-value");
+		const bmiCategoryEl = document.getElementById("bmi-category");
+
+		const logDate = document.getElementById("log-date");
+		const logWeight = document.getElementById("log-weight");
+		const logNote = document.getElementById("log-note");
+		const addWeightBtn = document.getElementById("add-weight-btn");
+		const weightLogBody = document.getElementById("weight-log-body");
+
+		function setTodayDate() {
+			const today = new Date();
+			const formatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+			logDate.value = formatted;
+		}
+
+		function updatePlaceholders() {
+			if (unitSystem.value === "metric") {
+				heightInput.placeholder = "cm";
+				weightInput.placeholder = "kg";
+				logWeight.placeholder = "Weight in kg";
+			} else {
+				heightInput.placeholder = "in";
+				weightInput.placeholder = "lb";
+				logWeight.placeholder = "Weight in lb";
+			}
+		}
+
+		function getBmiCategory(value) {
+			if (value < 18.5) return "Underweight";
+			if (value < 25) return "Normal weight";
+			if (value < 30) return "Overweight";
+			return "Obesity";
+		}
+
+		calcBmiBtn.addEventListener("click", () => {
+			const height = Number(heightInput.value);
+			const weight = Number(weightInput.value);
+
+			if (!height || !weight || height <= 0 || weight <= 0) {
+				bmiValueEl.textContent = "--";
+				bmiCategoryEl.textContent = "Enter valid height and weight";
+				return;
+			}
+
+			let bmi;
+			if (unitSystem.value === "metric") {
+				const heightMeters = height / 100;
+				bmi = weight / (heightMeters * heightMeters);
+			} else {
+				bmi = (weight / (height * height)) * 703;
+			}
+
+			const rounded = bmi.toFixed(1);
+			bmiValueEl.textContent = rounded;
+			bmiCategoryEl.textContent = getBmiCategory(Number(rounded));
+		});
+
+		addWeightBtn.addEventListener("click", () => {
+			const date = logDate.value;
+			const weight = logWeight.value;
+			const note = logNote.value.trim() || "-";
+			const unit = unitSystem.value === "metric" ? "kg" : "lb";
+
+			if (!date || !weight) {
+				return;
+			}
+
+			const row = document.createElement("tr");
+			row.innerHTML = `
+				<td>${date}</td>
+				<td>${Number(weight).toFixed(1)} ${unit}</td>
+				<td>${note}</td>
+				<td><button class="remove-log-btn" type="button">Remove</button></td>
+			`;
+			weightLogBody.prepend(row);
+
+			logWeight.value = "";
+			logNote.value = "";
+		});
+
+		weightLogBody.addEventListener("click", (event) => {
+			if (event.target.classList.contains("remove-log-btn")) {
+				event.target.closest("tr").remove();
+			}
+		});
+
+		unitSystem.addEventListener("change", updatePlaceholders);
+
+		setTodayDate();
+		updatePlaceholders();
+	</script>
 </body>
 </html>

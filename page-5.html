@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Fitness Tracker - BMI / Weight Tracker</title>
+	<title>Fitness Tracker - Profile</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,12 +19,156 @@
 			<li><a href="index.html">Dashboard</a></li>
 			<li><a href="page-2.html">Meal Tracking</a></li>
 			<li><a href="page-3.html">Workout Tracker</a></li>
-			<li><a class="active" href="page-5.html" aria-current="page">BMI / Weight Tracker</a></li>
-			<li><a href="page-4.html">Profile</a></li>
+			<li><a href="page-4.html">Weight Tracker</a></li>
+			<li><a class="active" href="page-5.html" aria-current="page">Profile</a></li>
 		</ul>
 	</nav>
 
-	<h1>BMI / Weight Tracker</h1>
-	<p>This is placeholder content for BMI and weight tracking.</p>
+	<main class="profile-page">
+		<header class="profile-page-header">
+			<h1>Profile</h1>
+			<p>Set your personal info, goals, and workout preferences.</p>
+		</header>
+
+		<form id="profile-form" class="profile-grid" aria-label="Profile settings form">
+			<section class="profile-card" aria-labelledby="basic-info-title">
+				<div class="profile-card-head">
+					<h2 id="basic-info-title">Basic Info</h2>
+				</div>
+				<div class="profile-fields profile-two-col">
+					<label for="profile-name">Full Name
+						<input id="profile-name" name="profile-name" type="text" placeholder="Your name">
+					</label>
+					<label for="profile-email">Email
+						<input id="profile-email" name="profile-email" type="email" placeholder="you@example.com">
+					</label>
+					<label for="profile-age">Age
+						<input id="profile-age" name="profile-age" type="number" min="1" step="1" placeholder="Age">
+					</label>
+					<label for="profile-gender">Gender
+						<select id="profile-gender" name="profile-gender">
+							<option value="">Select</option>
+							<option>Male</option>
+							<option>Female</option>
+							<option>Non-binary</option>
+							<option>Prefer not to say</option>
+						</select>
+					</label>
+				</div>
+			</section>
+
+			<section class="profile-card" aria-labelledby="body-metrics-title">
+				<div class="profile-card-head">
+					<h2 id="body-metrics-title">Body Metrics</h2>
+				</div>
+				<div class="profile-fields profile-three-col">
+					<label for="profile-height">Height (cm)
+						<input id="profile-height" name="profile-height" type="number" min="1" step="0.1" placeholder="cm">
+					</label>
+					<label for="profile-current-weight">Current Weight (kg)
+						<input id="profile-current-weight" name="profile-current-weight" type="number" min="1" step="0.1" placeholder="kg">
+					</label>
+					<label for="profile-goal-weight">Goal Weight (kg)
+						<input id="profile-goal-weight" name="profile-goal-weight" type="number" min="1" step="0.1" placeholder="kg">
+					</label>
+				</div>
+			</section>
+
+			<section class="profile-card" aria-labelledby="fitness-goals-title">
+				<div class="profile-card-head">
+					<h2 id="fitness-goals-title">Fitness Goals</h2>
+				</div>
+				<div class="profile-fields profile-two-col">
+					<label for="profile-main-goal">Main Goal
+						<select id="profile-main-goal" name="profile-main-goal">
+							<option value="">Select a goal</option>
+							<option>Lose Fat</option>
+							<option>Build Muscle</option>
+							<option>Maintain Weight</option>
+							<option>Improve Endurance</option>
+							<option>General Fitness</option>
+						</select>
+					</label>
+					<label for="profile-workouts-per-week">Workouts per Week
+						<input id="profile-workouts-per-week" name="profile-workouts-per-week" type="number" min="0" max="14" step="1" placeholder="Example: 4">
+					</label>
+					<label for="profile-calorie-target">Daily Calorie Target
+						<input id="profile-calorie-target" name="profile-calorie-target" type="number" min="0" step="1" placeholder="Example: 2200">
+					</label>
+					<label for="profile-protein-target">Daily Protein Target (g)
+						<input id="profile-protein-target" name="profile-protein-target" type="number" min="0" step="1" placeholder="Example: 170">
+					</label>
+				</div>
+			</section>
+
+			<section class="profile-card" aria-labelledby="preferences-title">
+				<div class="profile-card-head">
+					<h2 id="preferences-title">Preferences & Notes</h2>
+				</div>
+				<div class="profile-fields">
+					<label for="profile-training-style">Preferred Training Style
+						<input id="profile-training-style" name="profile-training-style" type="text" placeholder="Example: Push/Pull/Legs">
+					</label>
+					<label for="profile-diet-style">Preferred Nutrition Style
+						<input id="profile-diet-style" name="profile-diet-style" type="text" placeholder="Example: High protein">
+					</label>
+					<label for="profile-notes">Notes
+						<textarea id="profile-notes" name="profile-notes" placeholder="Anything you want to remember"></textarea>
+					</label>
+				</div>
+			</section>
+
+			<section class="profile-actions" aria-label="Profile actions">
+				<button id="save-profile-btn" class="profile-btn" type="submit">Save Profile</button>
+				<button id="reset-profile-btn" class="profile-btn profile-btn-secondary" type="button">Reset</button>
+				<p id="profile-status" class="profile-status" aria-live="polite">Profile not saved yet.</p>
+			</section>
+		</form>
+	</main>
+
+	<script>
+		const profileForm = document.getElementById("profile-form");
+		const resetProfileBtn = document.getElementById("reset-profile-btn");
+		const profileStatus = document.getElementById("profile-status");
+		const profileStorageKey = "fitness-tracker-profile";
+
+		function loadProfile() {
+			const saved = localStorage.getItem(profileStorageKey);
+			if (!saved) {
+				return;
+			}
+
+			const profileData = JSON.parse(saved);
+			Object.entries(profileData).forEach(([key, value]) => {
+				const field = profileForm.elements.namedItem(key);
+				if (field) {
+					field.value = value;
+				}
+			});
+
+			profileStatus.textContent = "Saved profile loaded.";
+		}
+
+		profileForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+
+			const formData = new FormData(profileForm);
+			const profileData = {};
+			for (const [key, value] of formData.entries()) {
+				profileData[key] = value;
+			}
+
+			localStorage.setItem(profileStorageKey, JSON.stringify(profileData));
+			profileStatus.textContent = "Profile saved.";
+		});
+
+		resetProfileBtn.addEventListener("click", () => {
+			profileForm.reset();
+			localStorage.removeItem(profileStorageKey);
+			profileStatus.textContent = "Profile reset.";
+		});
+
+		loadProfile();
+	</script>
 </body>
 </html>

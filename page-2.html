@@ -19,12 +19,148 @@
 			<li><a href="index.html">Dashboard</a></li>
 			<li><a class="active" href="page-2.html" aria-current="page">Meal Tracking</a></li>
 			<li><a href="page-3.html">Workout Tracker</a></li>
-			<li><a href="page-5.html">BMI / Weight Tracker</a></li>
-			<li><a href="page-4.html">Profile</a></li>
+			<li><a href="page-4.html">Weight Tracker</a></li>
+			<li><a href="page-5.html">Profile</a></li>
 		</ul>
 	</nav>
 
-	<h1>Meal Tracking</h1>
-	<p>This is placeholder content for Meal Tracking.</p>
+	<main class="meal-page">
+		<header class="meal-page-header">
+			<h1>Meal Tracking</h1>
+			<p>Track your food and macros for Breakfast, Lunch, Dinner, and any extras.</p>
+		</header>
+
+		<section class="meal-meta" aria-label="Tracking details">
+			<label for="tracking-date">Tracking Date</label>
+			<input id="tracking-date" type="date">
+		</section>
+
+		<form class="meal-form" aria-label="Meal and macro tracking form">
+			<section class="meal-card" aria-labelledby="breakfast-title">
+				<div class="meal-card-head">
+					<h2 id="breakfast-title">Breakfast</h2>
+				</div>
+				<label for="breakfast-food">Food</label>
+				<textarea id="breakfast-food" name="breakfast-food" placeholder="Example: Oatmeal, berries, eggs"></textarea>
+				<div class="macro-grid">
+					<label>Protein (g)
+						<input type="number" name="breakfast-protein" min="0" step="1">
+					</label>
+					<label>Carbs (g)
+						<input type="number" name="breakfast-carbs" min="0" step="1">
+					</label>
+					<label>Fat (g)
+						<input type="number" name="breakfast-fat" min="0" step="1">
+					</label>
+					<label>Calories
+						<input type="number" name="breakfast-calories" min="0" step="1">
+					</label>
+				</div>
+			</section>
+
+			<section class="meal-card" aria-labelledby="lunch-title">
+				<div class="meal-card-head">
+					<h2 id="lunch-title">Lunch</h2>
+				</div>
+				<label for="lunch-food">Food</label>
+				<textarea id="lunch-food" name="lunch-food" placeholder="Example: Chicken bowl, veggies, rice"></textarea>
+				<div class="macro-grid">
+					<label>Protein (g)
+						<input type="number" name="lunch-protein" min="0" step="1">
+					</label>
+					<label>Carbs (g)
+						<input type="number" name="lunch-carbs" min="0" step="1">
+					</label>
+					<label>Fat (g)
+						<input type="number" name="lunch-fat" min="0" step="1">
+					</label>
+					<label>Calories
+						<input type="number" name="lunch-calories" min="0" step="1">
+					</label>
+				</div>
+			</section>
+
+			<section class="meal-card" aria-labelledby="dinner-title">
+				<div class="meal-card-head">
+					<h2 id="dinner-title">Dinner</h2>
+				</div>
+				<label for="dinner-food">Food</label>
+				<textarea id="dinner-food" name="dinner-food" placeholder="Example: Salmon, potato, salad"></textarea>
+				<div class="macro-grid">
+					<label>Protein (g)
+						<input type="number" name="dinner-protein" min="0" step="1">
+					</label>
+					<label>Carbs (g)
+						<input type="number" name="dinner-carbs" min="0" step="1">
+					</label>
+					<label>Fat (g)
+						<input type="number" name="dinner-fat" min="0" step="1">
+					</label>
+					<label>Calories
+						<input type="number" name="dinner-calories" min="0" step="1">
+					</label>
+				</div>
+			</section>
+
+			<section class="meal-extras" aria-labelledby="extras-title">
+				<div class="meal-card-head">
+					<h2 id="extras-title">Extras</h2>
+					<button id="add-extra-btn" class="add-extra-btn" type="button">+ Add Extra</button>
+				</div>
+				<p class="extras-note">Use extras for snacks, drinks, or anything outside your main meals.</p>
+				<div id="extras-container" class="extras-container"></div>
+			</section>
+		</form>
+	</main>
+
+	<script>
+		const dateInput = document.getElementById("tracking-date");
+		const addExtraBtn = document.getElementById("add-extra-btn");
+		const extrasContainer = document.getElementById("extras-container");
+		let extraCount = 0;
+
+		const today = new Date();
+		dateInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+		function addExtraCard() {
+			extraCount += 1;
+			const card = document.createElement("section");
+			card.className = "meal-card extra-card";
+			card.innerHTML = `
+				<div class="meal-card-head">
+					<h3>Extra ${extraCount}</h3>
+					<button type="button" class="remove-extra-btn">Remove</button>
+				</div>
+				<label>Food
+					<textarea name="extra-${extraCount}-food" placeholder="Example: Protein shake, granola bar"></textarea>
+				</label>
+				<div class="macro-grid">
+					<label>Protein (g)
+						<input type="number" name="extra-${extraCount}-protein" min="0" step="1">
+					</label>
+					<label>Carbs (g)
+						<input type="number" name="extra-${extraCount}-carbs" min="0" step="1">
+					</label>
+					<label>Fat (g)
+						<input type="number" name="extra-${extraCount}-fat" min="0" step="1">
+					</label>
+					<label>Calories
+						<input type="number" name="extra-${extraCount}-calories" min="0" step="1">
+					</label>
+				</div>
+			`;
+			extrasContainer.appendChild(card);
+		}
+
+		addExtraBtn.addEventListener("click", addExtraCard);
+
+		extrasContainer.addEventListener("click", (event) => {
+			if (event.target.classList.contains("remove-extra-btn")) {
+				event.target.closest(".extra-card").remove();
+			}
+		});
+
+		addExtraCard();
+	</script>
 </body>
 </html>
