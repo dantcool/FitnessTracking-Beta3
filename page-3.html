@@ -137,6 +137,10 @@
 				<p class="workout-extras-note">Use extras for bonus exercises, accessories, or additional circuits.</p>
 				<div id="workout-extras-container" class="workout-extras-container"></div>
 			</section>
+
+			<div class="form-actions">
+				<button id="submit-workout-btn" class="submit-btn" type="button">Save Workout Entry</button>
+			</div>
 		</form>
 	</main>
 
@@ -185,6 +189,56 @@
 			if (event.target.classList.contains("remove-workout-extra-btn")) {
 				event.target.closest(".workout-extra-card").remove();
 			}
+		});
+
+		document.getElementById("submit-workout-btn").addEventListener("click", () => {
+			const date = workoutDateInput.value;
+			if (!date) {
+				alert("Please select a date for your workout entry.");
+				return;
+			}
+
+			// Collect all workout data
+			const workout = {
+				date: date,
+				sessionFocus: document.getElementById("session-focus")?.value || "",
+				warmup: {
+					exercise: document.querySelector('[name="warmup-exercise"]')?.value || "",
+					duration: document.querySelector('[name="warmup-duration"]')?.value || 0,
+					rpe: document.querySelector('[name="warmup-rpe"]')?.value || 0,
+					calories: document.querySelector('[name="warmup-calories"]')?.value || 0
+				},
+				strength: {
+					exercise: document.querySelector('[name="strength-exercise"]')?.value || "",
+					sets: document.querySelector('[name="strength-sets"]')?.value || 0,
+					reps: document.querySelector('[name="strength-reps"]')?.value || 0,
+					weight: document.querySelector('[name="strength-weight"]')?.value || 0,
+					rpe: document.querySelector('[name="strength-rpe"]')?.value || 0
+				},
+				cardio: {
+					exercise: document.querySelector('[name="cardio-exercise"]')?.value || "",
+					duration: document.querySelector('[name="cardio-duration"]')?.value || 0,
+					distance: document.querySelector('[name="cardio-distance"]')?.value || "",
+					pace: document.querySelector('[name="cardio-pace"]')?.value || "",
+					calories: document.querySelector('[name="cardio-calories"]')?.value || 0
+				},
+				cooldown: {
+					exercise: document.querySelector('[name="cooldown-exercise"]')?.value || "",
+					duration: document.querySelector('[name="cooldown-duration"]')?.value || 0,
+					rpe: document.querySelector('[name="cooldown-rpe"]')?.value || 0,
+					calories: document.querySelector('[name="cooldown-calories"]')?.value || 0,
+					notes: document.querySelector('[name="cooldown-notes"]')?.value || ""
+				}
+			};
+
+			// Get user key from auth
+			const userKey = FitnessAuth.getUserKey("workouts");
+			if (userKey) {
+				const storageKey = `${userKey}:${date}`;
+				localStorage.setItem(storageKey, JSON.stringify(workout));
+			}
+
+			alert(`Workout entry for ${date} saved successfully!`);
 		});
 
 		addWorkoutExtraCard();

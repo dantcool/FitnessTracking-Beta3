@@ -44,20 +44,25 @@
 							<option value="imperial">Imperial (lb, in)</option>
 						</select>
 					</label>
-					<label for="height-input">Height
-						<input id="height-input" type="number" min="1" step="0.1" placeholder="cm">
+				<div class="height-input-group" id="height-input-container">
+					<label for="height-feet">Height (ft)
+						<input id="height-feet" type="number" min="0" max="8" step="1" placeholder="ft">
 					</label>
-					<label for="weight-input">Weight
-						<input id="weight-input" type="number" min="1" step="0.1" placeholder="kg">
+					<label for="height-inches">Height (in)
+						<input id="height-inches" type="number" min="0" max="11" step="0.1" placeholder="in">
 					</label>
 				</div>
+				<label for="weight-input">Weight
+					<input id="weight-input" type="number" min="1" step="0.1" placeholder="kg">
+				</label>
+			</div>
 
-				<button id="calc-bmi-btn" class="bmi-action-btn" type="button">Calculate BMI</button>
+			<button id="calc-bmi-btn" class="bmi-action-btn" type="button">Calculate BMI</button>
 
-				<div class="bmi-result" id="bmi-result" aria-live="polite">
-					<p class="bmi-value">BMI: <span id="bmi-value">--</span></p>
-					<p class="bmi-category">Category: <span id="bmi-category">Not calculated</span></p>
-				</div>
+			<div class="bmi-result" id="bmi-result" aria-live="polite">
+				<p class="bmi-value">BMI: <span id="bmi-value">--</span></p>
+				<p class="bmi-category">Category: <span id="bmi-category">Not calculated</span></p>
+			</div>
 			</section>
 
 			<section class="bmi-card" aria-labelledby="weight-log-title">
@@ -72,8 +77,11 @@
 					<label for="log-weight">Weight
 						<input id="log-weight" type="number" min="1" step="0.1" placeholder="Enter weight">
 					</label>
-					<label for="log-note">Note
-						<input id="log-note" type="text" placeholder="Example: after workout">
+					<label for="log-time">Time of Day
+						<select id="log-time">
+							<option value="morning">Morning</option>
+							<option value="afternoon">Afternoon</option>
+						</select>
 					</label>
 					<button id="add-weight-btn" class="bmi-action-btn" type="button">Add Entry</button>
 				</div>
@@ -84,7 +92,7 @@
 							<tr>
 								<th scope="col">Date</th>
 								<th scope="col">Weight</th>
-								<th scope="col">Note</th>
+								<th scope="col">Time</th>
 								<th scope="col">Action</th>
 							</tr>
 						</thead>
@@ -97,7 +105,8 @@
 
 	<script>
 		const unitSystem = document.getElementById("unit-system");
-		const heightInput = document.getElementById("height-input");
+		const heightFeetInput = document.getElementById("height-feet");
+		const heightInchesInput = document.getElementById("height-inches");
 		const weightInput = document.getElementById("weight-input");
 		const calcBmiBtn = document.getElementById("calc-bmi-btn");
 		const bmiValueEl = document.getElementById("bmi-value");
@@ -105,7 +114,7 @@
 
 		const logDate = document.getElementById("log-date");
 		const logWeight = document.getElementById("log-weight");
-		const logNote = document.getElementById("log-note");
+		const logTime = document.getElementById("log-time");
 		const addWeightBtn = document.getElementById("add-weight-btn");
 		const weightLogBody = document.getElementById("weight-log-body");
 
@@ -117,11 +126,9 @@
 
 		function updatePlaceholders() {
 			if (unitSystem.value === "metric") {
-				heightInput.placeholder = "cm";
 				weightInput.placeholder = "kg";
 				logWeight.placeholder = "Weight in kg";
 			} else {
-				heightInput.placeholder = "in";
 				weightInput.placeholder = "lb";
 				logWeight.placeholder = "Weight in lb";
 			}
@@ -135,12 +142,13 @@
 		}
 
 		calcBmiBtn.addEventListener("click", () => {
-			heightInput.setCustomValidity("");
+			heightFeetInput.setCustomValidity("");
+			heightInchesInput.setCustomValidity("");
 			weightInput.setCustomValidity("");
 
-			if (!heightInput.value) {
-				heightInput.setCustomValidity("Enter your height to calculate BMI.");
-				heightInput.reportValidity();
+			if (!heightFeetInput.value && !heightInchesInput.value) {
+				heightFeetInput.setCustomValidity("Enter your height (feet and/or inches) to calculate BMI.");
+				heightFeetInput.reportValidity();
 				return;
 			}
 
@@ -150,8 +158,12 @@
 				return;
 			}
 
-			if (!heightInput.checkValidity()) {
-				heightInput.reportValidity();
+			if (!heightFeetInput.checkValidity() || !heightInchesInput.checkValidity()) {
+				if (!heightFeetInput.checkValidity()) {
+					heightFeetInput.reportValidity();
+				} else {
+					heightInchesInput.reportValidity();
+				}
 				return;
 			}
 
@@ -160,10 +172,11 @@
 				return;
 			}
 
-			const height = Number(heightInput.value);
+			const feet = Number(heightFeetInput.value || 0);
+			const inches = Number(heightInchesInput.value || 0);
 			const weight = Number(weightInput.value);
 
-			if (height <= 0 || weight <= 0) {
+			if (feet < 0 || inches < 0 || weight <= 0) {
 				bmiValueEl.textContent = "--";
 				bmiCategoryEl.textContent = "Enter valid height and weight";
 				return;
@@ -171,10 +184,14 @@
 
 			let bmi;
 			if (unitSystem.value === "metric") {
-				const heightMeters = height / 100;
+				// Convert feet/inches to cm
+				const totalInches = feet * 12 + inches;
+				const heightMeters = totalInches * 0.0254;
 				bmi = weight / (heightMeters * heightMeters);
 			} else {
-				bmi = (weight / (height * height)) * 703;
+				// Height in inches, weight in pounds
+				const totalInches = feet * 12 + inches;
+				bmi = (weight / (totalInches * totalInches)) * 703;
 			}
 
 			const rounded = bmi.toFixed(1);
@@ -210,20 +227,32 @@
 
 			const date = logDate.value;
 			const weight = logWeight.value;
-			const note = logNote.value.trim() || "-";
+			const time = logTime.value.charAt(0).toUpperCase() + logTime.value.slice(1);
 			const unit = unitSystem.value === "metric" ? "kg" : "lb";
+
+			// Save to localStorage
+			const userKey = FitnessAuth.getUserKey("weights");
+			if (userKey) {
+				const storageKey = `${userKey}:${date}`;
+				const entry = {
+					date: date,
+					time: time,
+					weight: Number(weight).toFixed(1),
+					unit: unit
+				};
+				localStorage.setItem(storageKey, JSON.stringify(entry));
+			}
 
 			const row = document.createElement("tr");
 			row.innerHTML = `
 				<td>${date}</td>
 				<td>${Number(weight).toFixed(1)} ${unit}</td>
-				<td>${note}</td>
+				<td>${time}</td>
 				<td><button class="remove-log-btn" type="button">Remove</button></td>
 			`;
 			weightLogBody.prepend(row);
 
 			logWeight.value = "";
-			logNote.value = "";
 		});
 
 		weightLogBody.addEventListener("click", (event) => {

@@ -113,6 +113,10 @@
 				<p class="extras-note">Use extras for snacks, drinks, or anything outside your main meals.</p>
 				<div id="extras-container" class="extras-container"></div>
 			</section>
+
+			<div class="form-actions">
+				<button id="submit-meal-btn" class="submit-btn" type="button">Save Meal Entry</button>
+			</div>
 		</form>
 	</main>
 
@@ -161,6 +165,48 @@
 			if (event.target.classList.contains("remove-extra-btn")) {
 				event.target.closest(".extra-card").remove();
 			}
+		});
+
+		document.getElementById("submit-meal-btn").addEventListener("click", () => {
+			const date = dateInput.value;
+			if (!date) {
+				alert("Please select a date for your meal entry.");
+				return;
+			}
+
+			// Collect all meal data
+			const meals = {
+				breakfast: {
+					food: document.querySelector('[name="breakfast-food"]')?.value || "",
+					protein: document.querySelector('[name="breakfast-protein"]')?.value || 0,
+					carbs: document.querySelector('[name="breakfast-carbs"]')?.value || 0,
+					fat: document.querySelector('[name="breakfast-fat"]')?.value || 0,
+					calories: document.querySelector('[name="breakfast-calories"]')?.value || 0
+				},
+				lunch: {
+					food: document.querySelector('[name="lunch-food"]')?.value || "",
+					protein: document.querySelector('[name="lunch-protein"]')?.value || 0,
+					carbs: document.querySelector('[name="lunch-carbs"]')?.value || 0,
+					fat: document.querySelector('[name="lunch-fat"]')?.value || 0,
+					calories: document.querySelector('[name="lunch-calories"]')?.value || 0
+				},
+				dinner: {
+					food: document.querySelector('[name="dinner-food"]')?.value || "",
+					protein: document.querySelector('[name="dinner-protein"]')?.value || 0,
+					carbs: document.querySelector('[name="dinner-carbs"]')?.value || 0,
+					fat: document.querySelector('[name="dinner-fat"]')?.value || 0,
+					calories: document.querySelector('[name="dinner-calories"]')?.value || 0
+				}
+			};
+
+			// Get user key from auth
+			const userKey = FitnessAuth.getUserKey("meals");
+			if (userKey) {
+				const storageKey = `${userKey}:${date}`;
+				localStorage.setItem(storageKey, JSON.stringify(meals));
+			}
+
+			alert(`Meal entry for ${date} saved successfully!`);
 		});
 
 		addExtraCard();

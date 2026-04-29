@@ -75,8 +75,89 @@
                 <h2>Today's Plan</h2>
                 <p>Add your day plan here.</p>
             </div>
-            <div class="plan-empty-box" aria-label="Today's plan notes area">
-                <p>Empty plan box</p>
+            
+            <!-- Tab Navigation -->
+            <div class="plan-tabs" role="tablist">
+                <button class="plan-tab-btn active" role="tab" aria-selected="true" aria-controls="workouts-panel" data-tab="workouts" type="button">
+                    Workouts
+                </button>
+                <button class="plan-tab-btn" role="tab" aria-selected="false" aria-controls="meals-panel" data-tab="meals" type="button">
+                    Meals
+                </button>
+                <button class="plan-tab-btn" role="tab" aria-selected="false" aria-controls="weighin-panel" data-tab="weighin" type="button">
+                    Weigh-In
+                </button>
+            </div>
+
+            <!-- Workouts Tab -->
+            <div class="plan-tab-content active" id="workouts-panel" role="tabpanel" aria-labelledby="workouts-tab">
+                <div class="plan-content-box">
+                    <p id="workouts-status">Nothing planned yet</p>
+                </div>
+            </div>
+
+            <!-- Meals Tab -->
+            <div class="plan-tab-content" id="meals-panel" role="tabpanel" aria-labelledby="meals-tab">
+                <div class="plan-content-box">
+                    <p id="meals-status">Nothing planned yet</p>
+                </div>
+            </div>
+
+            <!-- Weigh-In Tab -->
+            <div class="plan-tab-content" id="weighin-panel" role="tabpanel" aria-labelledby="weighin-tab">
+                <div class="plan-weighin-box">
+                    <div class="weighin-slot">
+                        <h4>Morning</h4>
+                        <p id="weighin-morning-status">Nothing planned yet</p>
+                    </div>
+                    <div class="weighin-slot">
+                        <h4>Afternoon</h4>
+                        <p id="weighin-afternoon-status">Nothing planned yet</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel history-panel">
+            <div class="panel-header">
+                <h2>History</h2>
+                <p id="history-date-label">Select a date to view tracking history</p>
+            </div>
+            
+            <div class="history-tabs" role="tablist">
+                <button class="history-tab-btn active" role="tab" aria-selected="true" aria-controls="meals-history-panel" data-tab="meals" type="button">
+                    Meals
+                </button>
+                <button class="history-tab-btn" role="tab" aria-selected="false" aria-controls="workouts-history-panel" data-tab="workouts" type="button">
+                    Workouts
+                </button>
+                <button class="history-tab-btn" role="tab" aria-selected="false" aria-controls="weight-history-panel" data-tab="weight" type="button">
+                    Weight
+                </button>
+            </div>
+
+            <!-- Meals History -->
+            <div class="history-tab-content active" id="meals-history-panel" role="tabpanel">
+                <div class="history-content-box">
+                    <p id="meals-history-status">No meal data for this date</p>
+                    <div id="meals-history-data" class="history-data-display"></div>
+                </div>
+            </div>
+
+            <!-- Workouts History -->
+            <div class="history-tab-content" id="workouts-history-panel" role="tabpanel">
+                <div class="history-content-box">
+                    <p id="workouts-history-status">No workout data for this date</p>
+                    <div id="workouts-history-data" class="history-data-display"></div>
+                </div>
+            </div>
+
+            <!-- Weight History -->
+            <div class="history-tab-content" id="weight-history-panel" role="tabpanel">
+                <div class="history-content-box">
+                    <p id="weight-history-status">No weight data for this date</p>
+                    <div id="weight-history-data" class="history-data-display"></div>
+                </div>
             </div>
         </section>
     </main>
@@ -190,6 +271,157 @@
 
         renderWeekdays();
         renderCalendar(currentMonth, currentYear);
+
+        // Tab switching functionality for Today's Plan
+        document.querySelectorAll(".plan-tab-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                const tabName = button.dataset.tab;
+                
+                // Remove active class from all buttons and contents
+                document.querySelectorAll(".plan-tab-btn").forEach((btn) => {
+                    btn.classList.remove("active");
+                    btn.setAttribute("aria-selected", "false");
+                });
+                document.querySelectorAll(".plan-tab-content").forEach((content) => {
+                    content.classList.remove("active");
+                });
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add("active");
+                button.setAttribute("aria-selected", "true");
+                
+                const activePanel = document.getElementById(button.getAttribute("aria-controls"));
+                if (activePanel) {
+                    activePanel.classList.add("active");
+                }
+            });
+        });
+
+        // History tab switching and calendar date selection
+        let selectedHistoryDate = null;
+        let selectedHistoryDateFormatted = null;
+
+        function updateHistoryDisplay(selectedDate, dateFormatted) {
+            selectedHistoryDate = dateFormatted;
+            selectedHistoryDateFormatted = selectedDate;
+            const dateLabel = document.getElementById("history-date-label");
+            dateLabel.textContent = `History for ${selectedDate}`;
+
+            const session = FitnessAuth.getSession();
+            if (!session) {
+                document.getElementById("meals-history-status").textContent = "Please log in to view history";
+                document.getElementById("workouts-history-status").textContent = "Please log in to view history";
+                document.getElementById("weight-history-status").textContent = "Please log in to view history";
+                return;
+            }
+
+            const username = session.username;
+
+            // Load meals data
+            const mealsKey = `fitness:${username}:meals:${dateFormatted}`;
+            const mealsData = localStorage.getItem(mealsKey);
+            if (mealsData) {
+                try {
+                    const meals = JSON.parse(mealsData);
+                    document.getElementById("meals-history-status").textContent = "Today's Meals:";
+                    const mealsDisplay = document.getElementById("meals-history-data");
+                    mealsDisplay.innerHTML = `
+                        <div class="history-item"><strong>Breakfast:</strong> ${meals.breakfast.food || "Not logged"} (${meals.breakfast.calories} cal)</div>
+                        <div class="history-item"><strong>Lunch:</strong> ${meals.lunch.food || "Not logged"} (${meals.lunch.calories} cal)</div>
+                        <div class="history-item"><strong>Dinner:</strong> ${meals.dinner.food || "Not logged"} (${meals.dinner.calories} cal)</div>
+                    `;
+                } catch (e) {
+                    document.getElementById("meals-history-status").textContent = "No meal data for this date";
+                    document.getElementById("meals-history-data").innerHTML = "";
+                }
+            } else {
+                document.getElementById("meals-history-status").textContent = "No meal data for this date";
+                document.getElementById("meals-history-data").innerHTML = "";
+            }
+
+            // Load workouts data
+            const workoutsKey = `fitness:${username}:workouts:${dateFormatted}`;
+            const workoutsData = localStorage.getItem(workoutsKey);
+            if (workoutsData) {
+                try {
+                    const workout = JSON.parse(workoutsData);
+                    document.getElementById("workouts-history-status").textContent = "Today's Workouts:";
+                    const workoutsDisplay = document.getElementById("workouts-history-data");
+                    const sessionFocus = workout.sessionFocus ? `<strong>Focus:</strong> ${workout.sessionFocus}<br>` : "";
+                    workoutsDisplay.innerHTML = `
+                        ${sessionFocus}
+                        <div class="history-item"><strong>Warmup:</strong> ${workout.warmup.exercise || "Not logged"} (${workout.warmup.duration} min)</div>
+                        <div class="history-item"><strong>Strength:</strong> ${workout.strength.exercise || "Not logged"} - ${workout.strength.sets}x${workout.strength.reps} @ ${workout.strength.weight}${workout.strength.weight ? ' lb' : ''}</div>
+                        <div class="history-item"><strong>Cardio:</strong> ${workout.cardio.exercise || "Not logged"} (${workout.cardio.duration} min, ${workout.cardio.distance})</div>
+                        <div class="history-item"><strong>Cooldown:</strong> ${workout.cooldown.exercise || "Not logged"} (${workout.cooldown.duration} min)</div>
+                    `;
+                } catch (e) {
+                    document.getElementById("workouts-history-status").textContent = "No workout data for this date";
+                    document.getElementById("workouts-history-data").innerHTML = "";
+                }
+            } else {
+                document.getElementById("workouts-history-status").textContent = "No workout data for this date";
+                document.getElementById("workouts-history-data").innerHTML = "";
+            }
+
+            // Load weight data
+            const weightsKey = `fitness:${username}:weights:${dateFormatted}`;
+            const weightsData = localStorage.getItem(weightsKey);
+            if (weightsData) {
+                try {
+                    const weight = JSON.parse(weightsData);
+                    document.getElementById("weight-history-status").textContent = "Today's Weight:";
+                    document.getElementById("weight-history-data").innerHTML = `
+                        <div class="history-item"><strong>${weight.time}:</strong> ${weight.weight} ${weight.unit}</div>
+                    `;
+                } catch (e) {
+                    document.getElementById("weight-history-status").textContent = "No weight data for this date";
+                    document.getElementById("weight-history-data").innerHTML = "";
+                }
+            } else {
+                document.getElementById("weight-history-status").textContent = "No weight data for this date";
+                document.getElementById("weight-history-data").innerHTML = "";
+            }
+        }
+
+        document.querySelectorAll(".history-tab-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                // Remove active class from all buttons and contents
+                document.querySelectorAll(".history-tab-btn").forEach((btn) => {
+                    btn.classList.remove("active");
+                    btn.setAttribute("aria-selected", "false");
+                });
+                document.querySelectorAll(".history-tab-content").forEach((content) => {
+                    content.classList.remove("active");
+                });
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add("active");
+                button.setAttribute("aria-selected", "true");
+                
+                const activePanel = document.getElementById(button.getAttribute("aria-controls"));
+                if (activePanel) {
+                    activePanel.classList.add("active");
+                }
+            });
+        });
+
+        // Make calendar cells clickable to update history
+        calendarGrid.addEventListener("click", (event) => {
+            if (event.target.classList.contains("calendar-cell") && !event.target.classList.contains("empty")) {
+                const day = event.target.textContent;
+                const selectedDate = `${monthNames[currentMonth]} ${day}, ${currentYear}`;
+                const dateForStorage = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                
+                // Highlight selected date
+                document.querySelectorAll(".calendar-cell").forEach(cell => {
+                    cell.classList.remove("selected");
+                });
+                event.target.classList.add("selected");
+                
+                updateHistoryDisplay(selectedDate, dateForStorage);
+            }
+        });
     </script>
     <script src="js/validation.js"></script>
 
